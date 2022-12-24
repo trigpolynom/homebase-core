@@ -1,6 +1,1 @@
-[submodule "risc0"]
-	path = risc0
-	url = https://github.com/trigpolynom/risc0.git
-[submodule "OData.Neo.Java"]
-	path = OData.Neo.Java
-	url = https://github.com/trigpolynom/OData.Neo.Java.git
+
