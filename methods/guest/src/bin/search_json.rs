@@ -17,7 +17,7 @@ pub fn main() {
     let data = parse(&data).unwrap();
     let data2 = parse(&data2).unwrap();
 
-    if data["critical_data"].as_u32().unwrap() != data2["critical_data"].as_u32() {
+    if data["critical_data"].as_u32().unwrap() != data2["critical_data"].as_u32().unwrap() {
         panic!();
     }
     let out = Outputs {
