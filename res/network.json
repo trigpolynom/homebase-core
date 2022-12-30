@@ -1,0 +1,15 @@
+{
+    "network" : [
+        {
+        "name": "Central Medical",
+        "address": "address1"
+        },
+        {
+        "name": "West Medical",
+        "address": "address2"
+        }
+
+    ]
+        
+    
+}
