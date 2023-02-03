@@ -13,7 +13,7 @@ fn main() {
         .expect("Should not have I/O errors");
 
     let mut file2 =
-        std::fs::File::open("res/example.json").expect("Example file should be accessible");
+        std::fs::File::open("res/provider_resources/claim.json").expect("Example file should be accessible");
     let mut data2 = String::new();
     file2.read_to_string(&mut data2)
         .expect("Should not have I/O errors");
