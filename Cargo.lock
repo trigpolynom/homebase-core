@@ -782,6 +782,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "models"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "native-tls"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1450,6 +1458,7 @@ dependencies = [
  "json",
  "json-core",
  "methods",
+ "models",
  "risc0-zkp",
  "risc0-zkvm",
  "serde",
