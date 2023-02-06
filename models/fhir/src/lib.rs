@@ -11,7 +11,8 @@ mod tests {
   use std::fs;
   use std::time::Instant;
 
-  #[test]
+
+#[test]
   fn test_parsing_json_samples() {
     let paths = fs::read_dir("examples-json/").unwrap();
 
