@@ -1,8 +1,9 @@
 [package]
-name = "json-core"
+name = "homebase-core"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 risc0-zkp = { version = "0.11", default-features = false }
 serde = "1.0"
+models = { path = "../models" }

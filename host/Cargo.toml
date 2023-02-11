@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-json-core = { path = "../core" }
+homebase-core = { path = "../core" }
 methods = { path = "../methods" }
 models = { path = "../models" }
 json = "0.12"

@@ -1,13 +1,13 @@
 use std::io::prelude::*;
 
-use json_core::Outputs;
+use homebase_core::Outputs;
 use methods::{SEARCH_JSON_ID, SEARCH_JSON_PATH};
 use risc0_zkvm::host::Prover;
 use risc0_zkvm::serde::{from_slice, to_vec};
 
 fn main() {
     let mut file =
-        std::fs::File::open("res/example.json").expect("Example file should be accessible");
+        std::fs::File::open("res/patient_resources/patient_details.json").expect("Example file should be accessible");
     let mut data = String::new();
     file.read_to_string(&mut data)
         .expect("Should not have I/O errors");

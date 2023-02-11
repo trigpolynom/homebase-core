@@ -1,3 +1,5 @@
+#![no_main]
+
 extern crate serde;
 extern crate serde_json;
 
@@ -14,7 +16,7 @@ mod tests {
 
 #[test]
   fn test_parsing_json_samples() {
-    let paths = fs::read_dir("examples-json/").unwrap();
+    let paths = fs::read_dir("models/fhir/examples-json/").unwrap();
 
     println!(
       "sizeof element definition:{:?}",
