@@ -9,7 +9,6 @@ risc0_zkvm_guest::entry!(main);
 
 pub fn main() {
 
-
     let data: String = env::read();
     let data2: String = env::read();
 

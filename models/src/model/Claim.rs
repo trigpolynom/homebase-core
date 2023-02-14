@@ -22,12 +22,13 @@ use crate::model::ResourceList::ResourceList;
 use serde_json::json;
 use serde_json::value::Value;
 use std::borrow::Cow;
+use serde::{Deserialize, Serialize};
 
 /// A provider issued list of professional services and products which have been
 /// provided, or are to be provided, to a patient which is sent to an insurer for
 /// reimbursement.
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Claim<'a> {
     pub(crate) value: Cow<'a, Value>,
 }
