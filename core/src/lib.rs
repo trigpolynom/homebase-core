@@ -1,12 +1,10 @@
-use risc0_zkp::core::sha::Digest;
-use serde::{Deserialize, Serialize};
+// use risc0_zkp::core::sha::Digest;
+// use serde::{Deserialize, Serialize};
 use fhir::r4::core::{
     claim::Claim,
     coverage::Coverage,
     patient::Patient,
 };
-// use std::collections::HashMap;
-// use chrono::{DateTime, Utc};
 
 
 pub struct ClaimPolicy {
@@ -14,7 +12,7 @@ pub struct ClaimPolicy {
 }
 
 impl ClaimPolicy {
-    fn auto_adjudicate(&self, claim: &Claim, patient: &Patient, coverage: &Coverage) -> ExplanationOfBenefit {
+    pub fn auto_adjudicate(&self, claim: &Claim, patient: &Patient, coverage: &Coverage) -> ExplanationOfBenefit {
         // Validate the claim against business rules
         let is_valid = self.validate_claim(claim, patient, coverage);
 

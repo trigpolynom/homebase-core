@@ -623,7 +623,6 @@ dependencies = [
 name = "homebase-core"
 version = "0.1.0"
 dependencies = [
- "chrono",
  "fhir",
  "json",
  "risc0-zkp",

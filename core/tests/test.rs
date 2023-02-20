@@ -1,33 +1,40 @@
-// use std::io::prelude::*;
-// use serde::ser::Error;
-// use serde_json::Result;
-// use models::model::Claim::Claim;
-// use std::io::BufReader;
-
-use std::fs::File;
+use serde::ser::Error;
+use serde_json::Result;
+use std::{fs::File, io::Read};
 use std::io::prelude::*;
-// use homebase_core::Claim;
 use fhir::r4::core::{
     claim::Claim,
     coverage::Coverage,
     patient::Patient,
 };
+use homebase_core::ClaimPolicy;
 
 #[test]
-fn parse_claim() -> std::io::Result<()> {
+fn parse_claim() -> Result<(), Box<dyn std::error::Error>> {
 
-    // let mut file = File::open("res/provider_resources/claim.json")?;
+    let mut file = File::open("res/provider_resources/claim.json")?;
+    let mut file2 = File::open("res/patient_resources/patient_details.json")?;
+    let mut file3 = File::open("res/patient_resources/patient_coverage.json")?;
 
-    // let mut contents = String::new();
-    // file.read_to_string(&mut contents)?;
+    let mut claimContents = String::new();
+    file.read_to_string(&mut claimContents)?;
 
-    // let claim: Claim = serde_json::from_str(&contents)?;
+    let mut patientContents = String::new();
+    file2.read_to_string(&mut patientContents)?;
+
+    let mut coverageContents = String::new();
+    file3.read_to_string(&mut coverageContents)?;
+
+    let claim: Claim = serde_json::from_str(&claimContents)?;
+    let patient: Patient = serde_json::from_str(&patientContents)?;
+    let coverage: Coverage = serde_json::from_str(&coverageContents)?;
+
     // println!("{:?}", claim);
 
     // Load the claim, patient, and coverage resources from some data source
-    let claim = Claim::default();
-    let patient = Patient::default();
-    let coverage = Coverage::default();
+    // let claim = Claim::default();
+    // let patient = Patient::default();
+    // let coverage = Coverage::default();
 
     // Create a ClaimPolicy instance and auto-adjudicate the claim
     let policy = ClaimPolicy {};
