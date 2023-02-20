@@ -1,13 +1,14 @@
 #![no_main]
 
 use json::parse;
-use homebase_core::Outputs;
+use homebase_core::{Claim, Patient, Coverage};
 use risc0_zkvm_guest::{env, sha};
-use fhir_rs::{fhir_parse, model};
 
 risc0_zkvm_guest::entry!(main);
 
 pub fn main() {
+
+    let claim: Claim = env::read();
 
     let data: String = env::read();
     let data2: String = env::read();
@@ -21,9 +22,7 @@ pub fn main() {
 
 
 pub struct ClaimPolicy {
-    patient: Patient,
-    claim: Claim,
-    coverage: Coverage,
+    correct_patient: bool
 }
 
 

@@ -12,4 +12,3 @@ risc0-build = "0.11"
 homebase-core = { path = "../../core" }
 risc0-zkvm-guest = "0.11"
 json = "0.12"
-fhir-rs = { path = "../../fhir/fhir-rs" }

@@ -1,6 +1,5 @@
 [workspace]
 members = [
     "methods",
-    "host",
-    "models",
+    "host"
 ]
