@@ -1,6 +1,6 @@
 use std::io::prelude::*;
 
-use homebase_core::Outputs;
+// use homebase_core::Outputs;
 use methods::{SEARCH_JSON_ID, SEARCH_JSON_PATH};
 use risc0_zkvm::host::Prover;
 use risc0_zkvm::serde::{from_slice, to_vec};
@@ -37,7 +37,7 @@ fn main() {
     let journal = &receipt
         .get_journal_vec()
         .expect("Receipt should have journal");
-    let outputs: Outputs = from_slice(&journal).expect("Journal should contain an Outputs object");
+    // let outputs: Outputs = from_slice(&journal).expect("Journal should contain an Outputs object");
 
-    println!("\nThe JSON files with hashes\n{}, {}\nprovably contains the same critical value\n", outputs.hash, outputs.hash2);
+    // println!("\nThe JSON files with hashes\n{}, {}\nprovably contains the same critical value\n", outputs.hash, outputs.hash2);
 }

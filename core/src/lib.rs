@@ -1,6 +1,6 @@
 // use risc0_zkp::core::sha::Digest;
 // use serde::{Deserialize, Serialize};
-use fhir::r4::core::{Claim, Coverage,Patient};
+use fhir::r4::core::{Claim, Coverage, Patient, ExplanationOfBenefit};
 
 
 pub struct ClaimPolicy {

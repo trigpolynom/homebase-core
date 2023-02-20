@@ -1,7 +1,6 @@
 #![no_main]
 
 use json::parse;
-// use homebase_core::{Claim, Patient, Coverage};
 use risc0_zkvm_guest::{env, sha};
 
 risc0_zkvm_guest::entry!(main);

@@ -9,6 +9,5 @@ edition = "2021"
 risc0-build = "0.11"
 
 [dependencies]
-homebase-core = { path = "../../core" }
 risc0-zkvm-guest = "0.11"
 json = "0.12"
