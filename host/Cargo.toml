@@ -4,9 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-homebase-core = { path = "../core" }
 methods = { path = "../methods" }
-models = { path = "../models" }
 json = "0.12"
 risc0-zkp = "0.11"
 risc0-zkvm = "0.11"

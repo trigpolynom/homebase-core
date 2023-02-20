@@ -1,16 +1,12 @@
-use serde::ser::Error;
-use serde_json::Result;
+// use serde::ser::Error;
+// use serde_json::Result;
 use std::{fs::File, io::Read};
-use std::io::prelude::*;
-use fhir::r4::core::{
-    claim::Claim,
-    coverage::Coverage,
-    patient::Patient,
-};
+// use std::io::prelude::*;
+use fhir::r4::core::{Claim, Coverage, Patient};
 use homebase_core::ClaimPolicy;
 
 #[test]
-fn parse_claim() -> Result<(), Box<dyn std::error::Error>> {
+fn parse_claim() -> Result<()> {
 
     let mut file = File::open("res/provider_resources/claim.json")?;
     let mut file2 = File::open("res/patient_resources/patient_details.json")?;
