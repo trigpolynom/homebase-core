@@ -7,9 +7,6 @@ use risc0_zkvm_guest::{env, sha};
 risc0_zkvm_guest::entry!(main);
 
 pub fn main() {
-
-    let claim: Claim = env::read();
-
     let data: String = env::read();
     let data2: String = env::read();
 

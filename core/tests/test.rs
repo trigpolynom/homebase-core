@@ -1,7 +1,5 @@
-// use serde::ser::Error;
-// use serde_json::Result;
+use anyhow::Result;
 use std::{fs::File, io::Read};
-// use std::io::prelude::*;
 use fhir::r4::core::{Claim, Coverage, Patient};
 use homebase_core::ClaimPolicy;
 
@@ -24,6 +22,10 @@ fn parse_claim() -> Result<()> {
     let claim: Claim = serde_json::from_str(&claimContents)?;
     let patient: Patient = serde_json::from_str(&patientContents)?;
     let coverage: Coverage = serde_json::from_str(&coverageContents)?;
+
+    // Validate that the claim has the correct fields
+    assert_eq!(claim.type_, Some(fhir::r4::core::CodeableConcept::new_with_code("professional")));
+
 
     // println!("{:?}", claim);
 

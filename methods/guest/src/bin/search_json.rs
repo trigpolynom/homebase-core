@@ -1,7 +1,6 @@
 #![no_main]
 
 use json::parse;
-use homebase_core::Outputs;
 use risc0_zkvm_guest::{env, sha};
 
 risc0_zkvm_guest::entry!(main);
@@ -20,9 +19,5 @@ pub fn main() {
     if data["critical_data"].as_u32().unwrap() != data2["critical_data"].as_u32().unwrap() {
         panic!();
     }
-    let out = Outputs {
-        hash: *sha,
-        hash2: *sha2,
-    };
     env::commit(&out);
 }
