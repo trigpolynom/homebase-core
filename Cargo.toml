@@ -1,5 +1,9 @@
 [workspace]
 members = [
     "methods",
+<<<<<<< HEAD
     "host"
+=======
+    "host",
+>>>>>>> 0d3e057 (serialized claim, patient, and coverage)
 ]
