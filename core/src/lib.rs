@@ -191,7 +191,8 @@ pub struct Reference {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Identifier {
-    pub use: Option<String>,
+    #[serde(rename = "use")]
+    pub use_: Option<String>,
     pub system: Option<String>,
     pub value: Option<String>,
     pub period: Option<Period>,
@@ -345,17 +346,6 @@ pub struct ItemDetail {
     pub net: Option<Money>,
     pub note_number: Option<Vec<u32>>,
     pub adjudication: Option<Vec<ClaimResponseItemAdjudication>>,
-}
-
-
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    
 }
 
 

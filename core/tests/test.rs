@@ -2,6 +2,17 @@ use serde_json::Result;
 use std::fs::File;
 use std::io::prelude::*;
 use homebase_core::{Claim, Patient, Coverage};
+use risc0_zkvm::host::Receipt;
+use risc0_zkvm::host::Prover;
+
+
+pub struct ClaimPolicy{}
+
+impl ClaimPolicy {
+    fn adjudicate(&self, claim: &Claim, patient: &Patient, coverage: &Coverage) -> Result<(Receipt)> {
+        Ok(())
+    }
+}
 
 #[test]
 fn parse_claim() -> Result<()> {
