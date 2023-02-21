@@ -2,8 +2,6 @@ use risc0_zkp::core::sha::Digest;
 use serde::{Deserialize, Serialize};
 
 
-pub struct ClaimPolicy {
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Patient {
     pub resourceType: String,
@@ -93,10 +91,6 @@ pub struct Photo {
     data: String
 }
 
-impl ClaimPolicy {
-    pub fn auto_adjudicate(&self, claim: &Claim, patient: &Patient, coverage: &Coverage) -> ExplanationOfBenefit {
-        // Validate the claim against business rules
-        let is_valid = self.validate_claim(claim, patient, coverage);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Coverage {
@@ -113,17 +107,6 @@ pub struct Coverage {
     pub period: Option<Period>,
     pub payor: Option<Vec<Reference>>,
 }
-
-        // Create an EOB resource summarizing the adjudication decision
-        let eob = self.create_eob(claim, amount);
-
-        eob
-    }
-
-    fn validate_claim(&self, claim: &Claim, patient: &Patient, coverage: &Coverage) -> bool {
-        // TODO: Perform validation against business rules and return true if valid, false otherwise
-        true
-    }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HumanName {
@@ -340,6 +323,8 @@ pub struct ItemDetail {
     pub note_number: Option<Vec<u32>>,
     pub adjudication: Option<Vec<ClaimResponseItemAdjudication>>,
 }
+
+
 
 
 
