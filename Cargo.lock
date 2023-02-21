@@ -537,6 +537,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "homebase-core"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "http"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"

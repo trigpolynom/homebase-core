@@ -1,3 +1,4 @@
+use serde_json::Result;
 use std::fs::File;
 use std::io::prelude::*;
 use homebase_core::{Claim, Patient, Coverage};

@@ -1,4 +1,3 @@
-use risc0_zkp::core::sha::Digest;
 use serde::{Deserialize, Serialize};
 
 
@@ -188,6 +187,30 @@ pub struct Reference {
     pub type_: Option<String>,
     pub identifier: Option<Identifier>,
     pub display: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Identifier {
+    pub use: Option<String>,
+    pub system: Option<String>,
+    pub value: Option<String>,
+    pub period: Option<Period>,
+    pub assigner: Option<Reference>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Period {
+    pub start: Option<String>,
+    pub end: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Coding {
+    pub system: Option<String>,
+    pub version: Option<String>,
+    pub code: Option<String>,
+    pub display: Option<String>,
+    pub user_selected: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
