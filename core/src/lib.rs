@@ -1,6 +1,31 @@
 use serde::{Deserialize, Serialize};
 
 
+pub struct Outputs {
+    pub claim: Claim,
+    pub patient: Patient,
+    pub coverage: Coverage,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Claim {
+    pub id: String,
+    pub identifier: Vec<Identifier>,
+    pub status: ClaimStatus,
+    #[serde(rename = "type")]
+    pub type_: CodeableConcept,
+    pub sub_type: Option<Vec<CodeableConcept>>,
+    #[serde(rename = "use")]
+    pub use_: Use,
+    pub patient: Reference,
+    pub created: String,
+    pub insurer: Reference,
+    pub provider: Reference,
+    pub diagnosis: Option<Vec<Diagnosis>>,
+    pub item: Option<Vec<Item>>,
+}
+
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Patient {
     pub resourceType: String,

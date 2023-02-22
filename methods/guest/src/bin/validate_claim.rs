@@ -1,11 +1,15 @@
 #![no_main]
 
 use json::parse;
-use risc0_zkvm_guest::{env, sha};
+use risc0_zkvm::
+use homebase_core::{Claim, Patient, Coverage};
 
 risc0_zkvm_guest::entry!(main);
 
 pub fn main() {
+    let claim: Claim = env::read();
+    let patient: Patient = env::read();
+    let coverage: Coverage = env::read();
     let data: String = env::read();
     let data2: String = env::read();
 
