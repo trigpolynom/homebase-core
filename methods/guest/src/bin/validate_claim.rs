@@ -10,6 +10,7 @@ pub fn main() {
     let claim: Claim = env::read();
     let patient: Patient = env::read();
     let coverage: Coverage = env::read();
+
     let data: String = env::read();
     let data2: String = env::read();
 
@@ -24,6 +25,6 @@ struct ClaimPolicy {}
 
 impl ClaimPolicy {
     pub fn is_valid(&self, claim: &Claim, patient: &Patient, coverage: &Coverage) -> bool {
-
+        claim.
     }
 }

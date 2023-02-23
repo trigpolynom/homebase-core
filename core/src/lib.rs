@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 pub struct Outputs {
     pub claim: Claim,
     pub patient: Patient,

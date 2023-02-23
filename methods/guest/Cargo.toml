@@ -11,4 +11,4 @@ risc0-build = "0.12"
 [dependencies]
 risc0-zkvm = { version = "0.12", default-features = false, features = [ "std" ] }
 json = "0.12"
-homebase_core = { path = "../../core" }
+homebase-core = { path = "../../core" }

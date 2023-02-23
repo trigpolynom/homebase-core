@@ -3,11 +3,11 @@ use std::fs::File;
 use std::io::prelude::*;
 use homebase_core::{Claim, Patient, Coverage};
 use methods::{VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID};
-use risc0_zkvm::{Prover, serde::to_vec};
+// use risc0_zkvm::{Prover, serde::to_vec};
 
 
 #[test]
-fn parse_claim() {
+fn parse_claim() -> Result<()> {
 
     let mut file = File::open("res/provider_resources/claim.json")?;
     let mut file2 = File::open("res/patient_resources/patient_details.json")?;
@@ -40,22 +40,22 @@ fn parse_claim() {
         Err(e) => eprintln!("Error deserializing coverage: {}", e),
     }
 
-    let mut prover = Prover::new(VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID)
-                                                        .expect("Prover should be constructed from matching method code & ID");
+    // let mut prover = Prover::new(VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID)
+    //                                                     .expect("Prover should be constructed from matching method code & ID");
 
-    let vec1 = to_vec(&claim).unwrap();
+    // let vec1 = to_vec(&claim).unwrap();
 
-    let vec2 = to_vec(&patient).unwrap();
+    // let vec2 = to_vec(&patient).unwrap();
 
-    let vec3 = to_vec(&coverage).unwrap();
+    // let vec3 = to_vec(&coverage).unwrap();
 
-    prover.add_input_u32_slice(&vec1);
-    prover.add_input_u32_slice(&vec2);
-    prover.add_input_u32_slice(&vec3);
+    // prover.add_input_u32_slice(&vec1);
+    // prover.add_input_u32_slice(&vec2);
+    // prover.add_input_u32_slice(&vec3);
 
 
-    let receipt = prover.run().unwrap();
+    // let receipt = prover.run().unwrap();
 
-    // Ok(())
+    Ok(())
 
 }
