@@ -689,12 +689,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "json"
-version = "0.12.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "078e285eafdfb6c4b434e0d31e8cfcb5115b651496faca5749b88fafd4f23bfd"
-
-[[package]]
 name = "lazy-regex"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -764,7 +758,7 @@ dependencies = [
 
 [[package]]
 name = "methods"
-version = "0.1.0"
+version = "0.12.0"
 dependencies = [
  "risc0-build",
 ]
@@ -1390,17 +1384,6 @@ checksum = "02e2d2db9033d13a1567121ddd7a095ee144db4e1ca1b1bda3419bc0da294ebd"
 dependencies = [
  "libc",
  "winapi",
-]
-
-[[package]]
-name = "starter"
-version = "0.1.0"
-dependencies = [
- "json",
- "methods",
- "risc0-zkp",
- "risc0-zkvm",
- "serde",
 ]
 
 [[package]]

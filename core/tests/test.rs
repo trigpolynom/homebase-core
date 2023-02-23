@@ -2,21 +2,12 @@ use serde_json::Result;
 use std::fs::File;
 use std::io::prelude::*;
 use homebase_core::{Claim, Patient, Coverage};
-use methods::{VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID}
-use risc0_zkvm::host::Receipt;
-use risc0_zkvm::host::Prover;
+use methods::{VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID};
+use risc0_zkvm::{Prover, serde::to_vec};
 
-
-pub struct ClaimPolicy{}
-
-impl ClaimPolicy {
-    fn adjudicate(&self, claim: &Claim, patient: &Patient, coverage: &Coverage) -> Result<(Receipt)> {
-        Ok(())
-    }
-}
 
 #[test]
-fn parse_claim() -> Result<()> {
+fn parse_claim() {
 
     let mut file = File::open("res/provider_resources/claim.json")?;
     let mut file2 = File::open("res/patient_resources/patient_details.json")?;
@@ -49,7 +40,22 @@ fn parse_claim() -> Result<()> {
         Err(e) => eprintln!("Error deserializing coverage: {}", e),
     }
 
+    let mut prover = Prover::new(VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID)
+                                                        .expect("Prover should be constructed from matching method code & ID");
 
-    Ok(())
+    let vec1 = to_vec(&claim).unwrap();
+
+    let vec2 = to_vec(&patient).unwrap();
+
+    let vec3 = to_vec(&coverage).unwrap();
+
+    prover.add_input_u32_slice(&vec1);
+    prover.add_input_u32_slice(&vec2);
+    prover.add_input_u32_slice(&vec3);
+
+
+    let receipt = prover.run().unwrap();
+
+    // Ok(())
 
 }

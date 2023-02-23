@@ -6,6 +6,4 @@ edition = "2021"
 [dependencies]
 serde_json = "1.0.93"
 risc0-zkvm = "0.12"
-
-[dev-dependencies]
 methods = { path = "../methods" }

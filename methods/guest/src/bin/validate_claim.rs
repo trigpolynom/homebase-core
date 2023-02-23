@@ -1,7 +1,7 @@
 #![no_main]
 
 use json::parse;
-use risc0_zkvm::
+use risc0_zkvm::guest::{env, sha};
 use homebase_core::{Claim, Patient, Coverage};
 
 risc0_zkvm_guest::entry!(main);
@@ -18,4 +18,12 @@ pub fn main() {
 
     let data = parse(&data).unwrap();
     let data2 = parse(&data2).unwrap();
+}
+
+struct ClaimPolicy {}
+
+impl ClaimPolicy {
+    pub fn is_valid(&self, claim: &Claim, patient: &Patient, coverage: &Coverage) -> bool {
+
+    }
 }

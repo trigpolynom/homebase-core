@@ -1,6 +1,6 @@
 [package]
-name = "methods-guest"
-version = "0.1.0"
+name = "guest"
+version = "0.12.0"
 edition = "2021"
 
 [workspace]
