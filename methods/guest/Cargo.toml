@@ -11,7 +11,3 @@ risc0-build = "0.12"
 [dependencies]
 risc0-zkvm = { version = "0.12", default-features = false, features = [ "std" ] }
 homebase-core = { path = "../../core" }
-
-[profile.release]
-lto = true
-opt-level = "z"

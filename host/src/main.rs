@@ -1,3 +1,4 @@
+use std::io::prelude::*;
 use homebase_core::{Claim, Patient, Coverage};
 use methods::{VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID};
 use risc0_zkvm::Prover;
@@ -43,5 +44,6 @@ fn main() {
 
     let receipt = prover.run().expect("Code should be provable");
 
+    let journal = &receipt.journal;
 
 }

@@ -539,19 +539,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "homebase-core"
-version = "0.12.0"
+name = "homebase"
+version = "0.1.0"
 dependencies = [
+ "homebase-core",
  "methods",
+ "risc0-zkp",
  "risc0-zkvm",
  "serde_json",
 ]
 
 [[package]]
-name = "host"
-version = "0.12.0"
+name = "homebase-core"
+version = "0.1.0"
 dependencies = [
- "homebase-core",
  "methods",
  "risc0-zkvm",
  "serde_json",
@@ -768,7 +769,7 @@ dependencies = [
 
 [[package]]
 name = "methods"
-version = "0.12.0"
+version = "0.1.0"
 dependencies = [
  "risc0-build",
 ]
