@@ -220,7 +220,7 @@ pub struct Identifier {
     pub system: Option<String>,
     pub value: Option<String>,
     pub period: Option<Period>,
-    pub assigner: Option<Reference>,
+    pub assigner: Option<Box<Reference>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -283,12 +283,6 @@ pub enum FinancialResourceStatusCodes {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Period {
-    pub start: Option<String>,
-    pub end: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct InsuranceAuthorization {
     pub reference: Option<Vec<Reference>>,
     pub pre_auth_ref: Option<String>,
@@ -330,14 +324,6 @@ pub struct Qualification {
     pub issuer: Option<Reference>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Coding {
-    pub system: Option<String>,
-    pub version: Option<String>,
-    pub code: Option<String>,
-    pub display: Option<String>,
-    pub user_selected: Option<bool>,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Quantity {

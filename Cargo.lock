@@ -553,8 +553,7 @@ dependencies = [
 name = "homebase-core"
 version = "0.1.0"
 dependencies = [
- "methods",
- "risc0-zkvm",
+ "serde",
  "serde_json",
 ]
 
