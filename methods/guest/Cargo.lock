@@ -549,7 +549,7 @@ dependencies = [
 
 [[package]]
 name = "homebase-core"
-version = "0.12.0"
+version = "0.1.0"
 dependencies = [
  "methods",
  "risc0-zkvm",
@@ -767,7 +767,7 @@ dependencies = [
 
 [[package]]
 name = "methods"
-version = "0.12.0"
+version = "0.1.0"
 dependencies = [
  "risc0-build",
 ]
