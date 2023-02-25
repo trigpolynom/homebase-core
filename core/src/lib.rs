@@ -1,11 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-pub struct Outputs {
-    pub claim: Claim,
-    pub patient: Patient,
-    pub coverage: Coverage,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claim {
     pub id: String,
@@ -21,7 +15,17 @@ pub struct Claim {
     pub insurer: Reference,
     pub provider: Reference,
     pub diagnosis: Option<Vec<Diagnosis>>,
+    pub insurance: Option<Vec<Insurance>>,
     pub item: Option<Vec<Item>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Insurance {
+    pub sequence: u32,
+    pub focal: bool,
+    pub coverage: Coverage,
+    pub businessArrangement: String,
+    pub preAuthRef: Vec<String>,
 }
 
 
