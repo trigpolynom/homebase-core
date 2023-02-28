@@ -3,12 +3,33 @@
 use risc0_zkvm::guest::env;
 use homebase_core::{Claim, Patient, Coverage};
 
+
 risc0_zkvm::guest::entry!(main);
 
 pub fn main() {
+    let mut CORRECT_COVERAGE: bool = false;
+
     let claim: Claim = env::read();
     let patient: Patient = env::read();
     let coverage: Coverage = env::read();
+
+
+    let claimInsuranceVec = &claim.insurance.ok_or("some error");
+
+    let claimInsurance = &claimInsuranceVec.as_ref().unwrap()[0];
+
+    let patientInsurance = &coverage.id;
+
+    let binding = claimInsurance.coverage.reference.as_ref().unwrap();
+    let split = binding.split('/');
+
+    let vec = split.collect::<Vec<&str>>();
+
+    let claimInsuranceCoverage = vec.get(1);
+
+    if &patientInsurance == &claimInsuranceCoverage.unwrap() {
+        CORRECT_COVERAGE = true;
+    }
 
     // let claimPolicy = ClaimPolicy{
 
@@ -18,7 +39,7 @@ pub fn main() {
     //     panic!("Claim is invalid! You won't be getting reimbursed!");
     // }
 
-    env::commit(&claim);
+    // env::commit(claim);
 
 }
 

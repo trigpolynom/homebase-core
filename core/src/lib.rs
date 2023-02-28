@@ -1,8 +1,10 @@
+use std::{fmt::{Display, self}};
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claim {
-    pub id: String,
+    pub id: Option<String>,
     pub identifier: Vec<Identifier>,
     pub status: ClaimStatus,
     #[serde(rename = "type")]
@@ -23,7 +25,7 @@ pub struct Claim {
 pub struct Insurance {
     pub sequence: u32,
     pub focal: bool,
-    pub coverage: Coverage,
+    pub coverage: Reference,
     pub businessArrangement: String,
     pub preAuthRef: Vec<String>,
 }
@@ -215,6 +217,12 @@ pub struct Reference {
     pub type_: Option<String>,
     pub identifier: Option<Identifier>,
     pub display: Option<String>,
+}
+
+impl fmt::Display for Reference {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
