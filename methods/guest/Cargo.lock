@@ -493,6 +493,7 @@ dependencies = [
  "homebase-core",
  "risc0-build",
  "risc0-zkvm",
+ "serde_json",
 ]
 
 [[package]]
