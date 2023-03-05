@@ -1,128 +1,78 @@
-use std::{io::prelude::*, fs::File, stringify};
-use homebase_core::{Claim, Patient, Coverage};
+// use std::{io::prelude::*, fs::File};
+// use homebase_core::{Claim, Patient, Coverage};
 use methods::{VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID};
-use risc0_zkvm::{Prover, serde::to_vec};
+use risc0_zkvm::{Prover,
+    serde::{from_slice, to_vec}
+};
 
 fn main() {
 
-        let mut file = File::open("res/provider_resources/claim.json").unwrap();
-        let mut file2 = File::open("res/patient_resources/patient_details.json").unwrap();
-        let mut file3 = File::open("res/patient_resources/patient_coverage.json").unwrap();
+        // let mut file = File::open("res/provider_resources/claim.json").unwrap();
+        // let mut file2 = File::open("res/patient_resources/patient_details.json").unwrap();
+        // let mut file3 = File::open("res/patient_resources/patient_coverage.json").unwrap();
     
-        let mut claim_contents = String::new();
-        file.read_to_string(&mut claim_contents).unwrap();
+        let claim_contents = include_str!("../../res/provider_resources/claim.json");
+        // let mut claim_contents = String::new();
+        // file.read_to_string(&mut claim_contents).unwrap();
     
-        let mut patient_contents = String::new();
-        file2.read_to_string(&mut patient_contents).unwrap();
+        // let patient_contents = include_str!("../../res/patient_resources/patient_details.json");
+        // let mut patient_contents = String::new();
+        // file2.read_to_string(&mut patient_contents).unwrap();
     
-        let mut coverage_contents = String::new();
-        file3.read_to_string(&mut coverage_contents).unwrap();
+        // let coverage_contents = include_str!("../../res/patient_resources/patient_coverage.json");        
+        // let mut coverage_contents = String::new();
+        // file3.read_to_string(&mut coverage_contents).unwrap();
     
-        // let claim: Result<Claim, serde_json::Error> = serde_json::from_str(&claim_contents);
-        // match claim {
-        //     Ok(ref c) => println!("{:?}", c),
-        //     Err(ref e) => eprintln!("Error deserializing claim: {}", e),
-        // }
-    
-        // let patient: Result<Patient, serde_json::Error> = serde_json::from_str(&patient_contents);
-        // match patient {
-        //     Ok(ref p) => println!("{:?}", p),
-        //     Err(ref e) => eprintln!("Error deserializing patient: {}", e),
-        // }
-    
-        // let coverage: Result<Coverage, serde_json::Error> = serde_json::from_str(&coverage_contents);
-        // match coverage {
-        //     Ok(ref c) => println!("{:?}", c),
-        //     Err(ref e) => eprintln!("Error deserializing coverage: {}", e),
-        // }
 
-    let mut prover = Prover::new(VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID).unwrap();
+        let mut prover = Prover::new(VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID).unwrap();
 
-    // let claim_bytes = serde_json::to_vec(&claim.unwrap()).expect("Error serializing claim");
-    // prover.add_input_u8_slice(&claim_bytes);
 
-    // let patient_bytes = serde_json::to_vec(&patient.unwrap()).expect("Error serializing patient");
-    // prover.add_input_u8_slice(&patient_bytes);
+        prover.add_input_u32_slice(&to_vec(&claim_contents).expect("Error serializing claim"));
+        // prover.add_input_u32_slice(&to_vec(&patient_contents).expect("Error serializing patient"));
+        // prover.add_input_u32_slice(&to_vec(&coverage_contents).expect("Error serializing coverage"));
 
-    // let coverage_bytes = serde_json::to_vec(&coverage.unwrap()).expect("Error serializing coverage");
-    // prover.add_input_u8_slice(&coverage_bytes);
+        let receipt = prover.run().expect("Code should be provable");
 
-    // let claim_to_add = &claim.unwrap();
-    // let patient_to_add = &patient.unwrap();
-    // let coverage_to_add = &coverage.unwrap();
+        let journal = &receipt.journal;
 
-    prover.add_input_u32_slice(&to_vec(&claim_contents).expect("Error serializing claim"));
-    prover.add_input_u32_slice(&to_vec(&patient_contents).expect("Error serializing patient"));
-    prover.add_input_u32_slice(&to_vec(&coverage_contents).expect("Error serializing coverage"));
+        let boolean_output: bool = from_slice(&journal).expect("Journal should contain a boolean showing whether the claim had correct patient.");
 
-    let receipt = prover.run().expect("Code should be provable");
+        print!("{}", &journal[0]);
 
-    let journal = &receipt.journal;
+        print!("{}", &boolean_output);
 
 }
 
 
 #[cfg(test)]
 mod tests {
-    use std::{io::prelude::*, fs::File, ops::Deref};
-    use homebase_core::{Claim, Patient, Coverage, Reference, Insurance};
+    use json::parse;
+    // use std::{io::prelude::*, fs::File, ops::Deref};
+    // use homebase_core::{Claim, Patient, Coverage, Reference, Insurance};
 
     #[test]
     fn main() {
 
-        let mut CORRECT_COVERAGE: bool = false;
-    
-        let mut file = File::open("res/provider_resources/claim.json").unwrap();
-        let mut file2 = File::open("res/patient_resources/patient_details.json").unwrap();
-        let mut file3 = File::open("res/patient_resources/patient_coverage.json").unwrap();
-    
-        let mut claim_contents = String::new();
-        file.read_to_string(&mut claim_contents).unwrap();
-    
-        let mut patient_contents = String::new();
-        file2.read_to_string(&mut patient_contents).unwrap();
-    
-        let mut coverage_contents = String::new();
-        file3.read_to_string(&mut coverage_contents).unwrap();
-    
-        let claim: Result<Claim, serde_json::Error> = serde_json::from_str(&claim_contents);
-        match claim {
-            Ok(ref c) => println!("{:?}", c),
-            Err(ref e) => eprintln!("Error deserializing claim: {}", e),
-        }
-    
-        let patient: Result<Patient, serde_json::Error> = serde_json::from_str(&patient_contents);
-        match patient {
-            Ok(ref p) => println!("{:?}", p),
-            Err(ref e) => eprintln!("Error deserializing patient: {}", e),
-        }
-    
-        let coverage: Result<Coverage, serde_json::Error> = serde_json::from_str(&coverage_contents);
-        match coverage {
-            Ok(ref c) => println!("{:?}", c),
-            Err(ref e) => eprintln!("Error deserializing coverage: {}", e),
+        let mut CORRECT_PATIENT: bool = false;
+
+        let claim_contents = include_str!("../../res/provider_resources/claim.json");
+
+        let claim = parse(&claim_contents).unwrap();
+
+        let patient_reference = &claim["patient"];
+
+        let patient = patient_reference["reference"].as_str().unwrap();
+
+        println!("{}", patient);
+
+        let patient_string = "Patient/pat1";
+
+        if &patient == &patient_string {
+            CORRECT_PATIENT = true;
         }
 
+        println!("{}", CORRECT_PATIENT);
 
-        let claimInsuranceVec = &claim.unwrap().insurance.ok_or("some error");
-
-        let claimInsurance = &claimInsuranceVec.as_ref().unwrap()[0];
-
-        let patientInsurance = &coverage.unwrap().id;
-
-        let binding = claimInsurance.coverage.reference.as_ref().unwrap();
-        let split = binding.split('/');
-
-        let vec = split.collect::<Vec<&str>>();
-
-        let claimInsuranceCoverage = vec.get(1);
-
-
-
-
-        if &patientInsurance == &claimInsuranceCoverage.unwrap() {
-            CORRECT_COVERAGE = true;
-        }
 
 
 
