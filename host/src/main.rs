@@ -5,6 +5,7 @@ use json::parse;
 use risc0_zkvm::{Prover,
     serde::{from_slice, to_vec}
 };
+use std::time::{Duration, Instant};
 
 fn main() {
 
@@ -29,8 +30,11 @@ fn main() {
         // prover.add_input_u32_slice(&to_vec(&patient_contents).expect("Error serializing patient"));
         // prover.add_input_u32_slice(&to_vec(&coverage_contents).expect("Error serializing coverage"));
 
+        let start = Instant::now();
         let receipt = prover.run().expect("Code should be provable");
+        let duration = start.elapsed();
 
+        println!("Time elapsed in expensive_function() is: {:?}", duration);
         let journal = &receipt.journal;
 
         let boolean_output: bool = from_slice(&journal).expect("Journal should contain a boolean showing whether the claim had correct patient.");
