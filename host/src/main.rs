@@ -1,33 +1,31 @@
 // use std::{io::prelude::*, fs::File};
 // use homebase_core::{Claim, Patient, Coverage};
 use methods::{VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID};
+use json::parse;
 use risc0_zkvm::{Prover,
     serde::{from_slice, to_vec}
 };
 
 fn main() {
 
-        // let mut file = File::open("res/provider_resources/claim.json").unwrap();
-        // let mut file2 = File::open("res/patient_resources/patient_details.json").unwrap();
-        // let mut file3 = File::open("res/patient_resources/patient_coverage.json").unwrap();
-    
-        let claim_contents = include_str!("../../res/provider_resources/claim.json");
-        // let mut claim_contents = String::new();
-        // file.read_to_string(&mut claim_contents).unwrap();
-    
-        // let patient_contents = include_str!("../../res/patient_resources/patient_details.json");
-        // let mut patient_contents = String::new();
-        // file2.read_to_string(&mut patient_contents).unwrap();
-    
-        // let coverage_contents = include_str!("../../res/patient_resources/patient_coverage.json");        
-        // let mut coverage_contents = String::new();
-        // file3.read_to_string(&mut coverage_contents).unwrap();
-    
+        let claim_contents = include_str!("../../res/provider_resources/claim.json");    
+        let patient_contents = include_str!("../../res/patient_resources/patient_details.json");
+        let coverage_contents = include_str!("../../res/patient_resources/patient_coverage.json");        
+
+        let claim = parse(&claim_contents).unwrap();
+        let patient = parse(&patient_contents).unwrap();
+        let coverage = parse(&coverage_contents).unwrap();
+
+        let claim_patient_reference = &claim["patient"];
+
+        let claim_patient = claim_patient_reference["reference"].as_str().unwrap();
+
+        let patient_id = patient["id"].as_str().unwrap();
 
         let mut prover = Prover::new(VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID).unwrap();
 
-
-        prover.add_input_u32_slice(&to_vec(&claim_contents).expect("Error serializing claim"));
+        prover.add_input_u32_slice(&to_vec(&claim_patient).expect("should be serializable")); 
+        // prover.add_input_u32_slice(&to_vec(&claim_contents).expect("Error serializing claim"));
         // prover.add_input_u32_slice(&to_vec(&patient_contents).expect("Error serializing patient"));
         // prover.add_input_u32_slice(&to_vec(&coverage_contents).expect("Error serializing coverage"));
 
@@ -36,8 +34,6 @@ fn main() {
         let journal = &receipt.journal;
 
         let boolean_output: bool = from_slice(&journal).expect("Journal should contain a boolean showing whether the claim had correct patient.");
-
-        print!("{}", &journal[0]);
 
         print!("{}", &boolean_output);
 

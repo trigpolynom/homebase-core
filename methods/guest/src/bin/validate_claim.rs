@@ -12,15 +12,7 @@ pub fn main() {
 
     let mut CORRECT_PATIENT: bool = false;
 
-    let claim_contents: String = env::read();
-
-    let claim = parse(&claim_contents).unwrap();
-
-    let patient_reference = &claim["patient"];
-
-    let patient = patient_reference["reference"].as_str().unwrap();
-
-    println!("{}", patient);
+    let patient: String = env::read();
 
     let patient_string = "Patient/pat1";
 
