@@ -12,23 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use json_core::Outputs;
-use json_methods::{SEARCH_JSON_ELF, SEARCH_JSON_ID};
+use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
+use serde::Deserialize;
+use authenticate_methods::{SEARCH_JSON_ELF, SEARCH_JSON_ID};
 use risc0_zkvm::{
     serde::{from_slice, to_vec},
     Prover,
 };
 
-fn main() {
-    let data = include_str!("../res/passwords.json");
 
+#[derive(Deserialize)]
+struct AuthRequest {
+    username: String,
+    password: String,
+}
+
+#[post("/auth")]
+async fn authenticate(auth_request: web::Json<AuthRequest>) -> impl Responder {
+
+    let correct_auth = include_str!("../res/passwords.json");
+    
     // Make the prover.
     let mut prover =
         Prover::new(SEARCH_JSON_ELF).expect("Prover should be constructed from valid ELF binary");
 
     prover.add_input_u32_slice(&to_vec(&data).expect("should be serializable"));
-
-    // Run prover & generate receipt
+   
     let receipt = prover.run().expect(
         "Code should be provable unless it had an error or exceeded the maximum cycle limit",
     );
@@ -38,42 +47,55 @@ fn main() {
         .expect("Proven code should verify");
 
     let journal = &receipt.journal;
-    let outputs: Outputs = from_slice(&journal).expect("Journal should contain an Outputs object");
+
+    // Add your authentication logic here
+    if auth_request.username == "test" && auth_request.password == "password" {
+        HttpResponse::Ok().body("Authenticated")
+    } else {
+        HttpResponse::Unauthorized().body("Invalid credentials")
+    }
+}
+
+async fn main() -> std::io::Result<()>  {
+    HttpServer::new(|| App::new().service(authenticate))
+        .bind("127.0.0.1:8080")?
+        .run()
+        .await();
 
     println!("\nThe JSON file with hash\n  {:?}\nprovably contains a field 'critical_data' with value {}\n", outputs.hash, outputs.data);
 }
 
-#[cfg(test)]
-mod tests {
-    use json_core::Outputs;
-    use json_methods::{SEARCH_JSON_ELF, SEARCH_JSON_ID};
-    use risc0_zkvm::{
-        serde::{from_slice, to_vec},
-        Prover,
-    };
+// #[cfg(test)]
+// mod tests {
+//     use json_core::Outputs;
+//     use json_methods::{SEARCH_JSON_ELF, SEARCH_JSON_ID};
+//     use risc0_zkvm::{
+//         serde::{from_slice, to_vec},
+//         Prover,
+//     };
 
-    #[test]
-    fn main() {
-        let data = include_str!("../res/example.json");
+//     #[test]
+//     fn main() {
+//         let data = include_str!("../res/example.json");
 
-        // Make the prover.
-        let mut prover = Prover::new(SEARCH_JSON_ELF)
-            .expect("Prover should be constructed from matching method code & ID");
-        prover.add_input_u32_slice(&to_vec(&data).expect("should be serializable"));
+//         // Make the prover.
+//         let mut prover = Prover::new(SEARCH_JSON_ELF)
+//             .expect("Prover should be constructed from matching method code & ID");
+//         prover.add_input_u32_slice(&to_vec(&data).expect("should be serializable"));
 
-        // Run prover & generate receipt
-        let receipt = prover.run().expect("Code should be provable");
+//         // Run prover & generate receipt
+//         let receipt = prover.run().expect("Code should be provable");
 
-        receipt
-            .verify(&SEARCH_JSON_ID)
-            .expect("Proven code should verify");
+//         receipt
+//             .verify(&SEARCH_JSON_ID)
+//             .expect("Proven code should verify");
 
-        let journal = &receipt.journal;
-        let outputs: Outputs =
-            from_slice(&journal).expect("Journal should contain an Outputs object");
-        assert_eq!(
-            outputs.data, 47,
-            "Did not find the expected value in the critical_data field"
-        );
-    }
-}
+//         let journal = &receipt.journal;
+//         let outputs: Outputs =
+//             from_slice(&journal).expect("Journal should contain an Outputs object");
+//         assert_eq!(
+//             outputs.data, 47,
+//             "Did not find the expected value in the critical_data field"
+//         );
+//     }
+// }

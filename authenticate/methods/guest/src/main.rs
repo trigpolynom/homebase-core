@@ -15,7 +15,6 @@
 #![no_main]
 
 use json::parse;
-use json_core::Outputs;
 use risc0_zkvm::{
     guest::env,
     sha::{Impl, Sha256},

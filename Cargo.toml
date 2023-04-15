@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "authenticate",
-    "authenticate/broker",
 ]
 
 # Always optimize; otherwise tests take excessively long.
