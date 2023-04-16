@@ -13,6 +13,8 @@
 // limitations under the License.
 
 use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
+use actix_cors::Cors;
+use authenticate_core::Outputs;
 use serde::{Deserialize, Serialize};
 use authenticate_methods::{SEARCH_JSON_ELF, SEARCH_JSON_ID};
 use risc0_zkvm::{
@@ -27,6 +29,12 @@ struct AuthRequest {
     username: String,
     password: String,
 }
+
+#[derive(Serialize, Deserialize)]
+struct ApiResponse {
+    success: bool,
+}
+
 
 #[post("/auth")]
 async fn authenticate(auth_request: web::Json<AuthRequest>) -> impl Responder {
@@ -63,8 +71,11 @@ async fn authenticate(auth_request: web::Json<AuthRequest>) -> impl Responder {
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
+        let cors = Cors::permissive(); // Allow all origins
+
         App::new()
-            .route("/authenticate", web::post().to(authenticate))
+            .wrap(cors)
+            .service(authenticate)
     })
     .bind("127.0.0.1:8080")?
     .run()
@@ -83,15 +94,15 @@ mod tests {
             username: "ebgordo2".to_string(),
             password: "P@$$word".to_string(),
         };
-
-        let app = App::new().route("/authenticate", web::post().to(authenticate));
+    
+        let app = App::new().service(authenticate);
         let mut app = test::init_service(app).await;
-
+    
         let req = test::TestRequest::post()
-            .uri("/authenticate")
+            .uri("/auth")
             .set_json(&auth_request)
             .to_request();
-
+    
         let resp = test::call_service(&mut app, req).await;
         assert!(resp.status().is_success());
     }

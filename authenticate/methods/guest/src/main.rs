@@ -30,14 +30,14 @@ pub fn main() {
     let stored_username = data["username"].as_str().unwrap();
     let stored_password = data["password"].as_str().unwrap();
 
-    let input_username = env::read();
-    let input_password = env::read();
+    let input_username: String = env::read();
+    let input_password: String = env::read();
 
-    let success = stored_username == input_username && stored_password == input_password;
+    let authorized = stored_username == input_username && stored_password == input_password;
 
     let out = Outputs {
-        success,
-        sha
+        success: authorized,
+        hash: sha,
     };
     env::commit(&out);
 }
