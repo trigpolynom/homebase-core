@@ -13,15 +13,16 @@
 // limitations under the License.
 
 use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use authenticate_methods::{SEARCH_JSON_ELF, SEARCH_JSON_ID};
 use risc0_zkvm::{
     serde::{from_slice, to_vec},
     Prover,
 };
+use tokio;
 
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct AuthRequest {
     username: String,
     password: String,
@@ -36,7 +37,9 @@ async fn authenticate(auth_request: web::Json<AuthRequest>) -> impl Responder {
     let mut prover =
         Prover::new(SEARCH_JSON_ELF).expect("Prover should be constructed from valid ELF binary");
 
-    prover.add_input_u32_slice(&to_vec(&data).expect("should be serializable"));
+    prover.add_input_u32_slice(&to_vec(&correct_auth).expect("should be serializable"));
+    prover.add_input_u32_slice(&to_vec(&auth_request.username).expect("should be serializable"));
+    prover.add_input_u32_slice(&to_vec(&auth_request.password).expect("should be serializable"));
    
     let receipt = prover.run().expect(
         "Code should be provable unless it had an error or exceeded the maximum cycle limit",
@@ -48,54 +51,50 @@ async fn authenticate(auth_request: web::Json<AuthRequest>) -> impl Responder {
 
     let journal = &receipt.journal;
 
-    // Add your authentication logic here
-    if auth_request.username == "test" && auth_request.password == "password" {
-        HttpResponse::Ok().body("Authenticated")
+    let outputs: Outputs = from_slice(&journal).expect("Journal should contain an Outputs object");
+
+    if outputs.success {
+        HttpResponse::Ok().json(ApiResponse { success: true })
     } else {
-        HttpResponse::Unauthorized().body("Invalid credentials")
+        HttpResponse::Unauthorized().json(ApiResponse { success: false })
     }
 }
 
-async fn main() -> std::io::Result<()>  {
-    HttpServer::new(|| App::new().service(authenticate))
-        .bind("127.0.0.1:8080")?
-        .run()
-        .await();
-
-    println!("\nThe JSON file with hash\n  {:?}\nprovably contains a field 'critical_data' with value {}\n", outputs.hash, outputs.data);
+#[tokio::main]
+async fn main() -> std::io::Result<()> {
+    HttpServer::new(|| {
+        App::new()
+            .route("/authenticate", web::post().to(authenticate))
+    })
+    .bind("127.0.0.1:8080")?
+    .run()
+    .await
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use json_core::Outputs;
-//     use json_methods::{SEARCH_JSON_ELF, SEARCH_JSON_ID};
-//     use risc0_zkvm::{
-//         serde::{from_slice, to_vec},
-//         Prover,
-//     };
 
-//     #[test]
-//     fn main() {
-//         let data = include_str!("../res/example.json");
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::{http, test, web, App};
 
-//         // Make the prover.
-//         let mut prover = Prover::new(SEARCH_JSON_ELF)
-//             .expect("Prover should be constructed from matching method code & ID");
-//         prover.add_input_u32_slice(&to_vec(&data).expect("should be serializable"));
+    #[actix_rt::test]
+    async fn test_authenticate_success() {
+        let auth_request = AuthRequest {
+            username: "ebgordo2".to_string(),
+            password: "P@$$word".to_string(),
+        };
 
-//         // Run prover & generate receipt
-//         let receipt = prover.run().expect("Code should be provable");
+        let app = App::new().route("/authenticate", web::post().to(authenticate));
+        let mut app = test::init_service(app).await;
 
-//         receipt
-//             .verify(&SEARCH_JSON_ID)
-//             .expect("Proven code should verify");
+        let req = test::TestRequest::post()
+            .uri("/authenticate")
+            .set_json(&auth_request)
+            .to_request();
 
-//         let journal = &receipt.journal;
-//         let outputs: Outputs =
-//             from_slice(&journal).expect("Journal should contain an Outputs object");
-//         assert_eq!(
-//             outputs.data, 47,
-//             "Did not find the expected value in the critical_data field"
-//         );
-//     }
-// }
+        let resp = test::call_service(&mut app, req).await;
+        assert!(resp.status().is_success());
+    }
+
+    // Add more test cases here based on your authentication logic
+}

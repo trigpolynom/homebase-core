@@ -15,6 +15,7 @@
 #![no_main]
 
 use json::parse;
+use authenticate_core::Outputs;
 use risc0_zkvm::{
     guest::env,
     sha::{Impl, Sha256},
@@ -26,10 +27,17 @@ pub fn main() {
     let data: String = env::read();
     let sha = *Impl::hash_bytes(&data.as_bytes());
     let data = parse(&data).unwrap();
-    let proven_val = data["critical_data"].as_u32().unwrap();
+    let stored_username = data["username"].as_str().unwrap();
+    let stored_password = data["password"].as_str().unwrap();
+
+    let input_username = env::read();
+    let input_password = env::read();
+
+    let success = stored_username == input_username && stored_password == input_password;
+
     let out = Outputs {
-        data: proven_val,
-        hash: sha,
+        success,
+        sha
     };
     env::commit(&out);
 }
