@@ -36,8 +36,7 @@ struct ApiResponse {
 }
 
 
-#[post("/auth")]
-async fn authenticate(auth_request: web::Json<AuthRequest>) -> impl Responder {
+async fn authenticate_institution(auth_request: web::Json<AuthRequest>) -> impl Responder {
 
     let correct_auth = include_str!("../res/passwords.json");
     
