@@ -1,26 +1,25 @@
-// server.rs
-use warp::Filter;
-
-// Import the handlers from the separate packages.
+use actix_web::{web, App, HttpResponse, HttpServer, middleware::Logger};
+use actix_cors::Cors;
 use medical::validate_medical_data;
 use authenticate::authenticate_institution;
 
-pub async fn run_server() {
-    // Define the medical validation route.
-    let medical_validation_route = warp::path("medical")
-        .and(warp::post())
-        .and(warp::body::json())
-        .and_then(validate_medical_data);
+pub async fn run_server() -> std::io::Result<()> {
+    HttpServer::new(|| {
+        let cors = Cors::permissive(); // Allow all origins
 
-    // Define the authentication route.
-    let authentication_route = warp::path("authenticate")
-        .and(warp::post())
-        .and(warp::body::json())
-        .and_then(authenticate_institution);
-
-    // Combine the routes.
-    let routes = medical_validation_route.or(authentication_route);
-
-    // Start the server.
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+        App::new()
+            .wrap(Logger::new("%t %a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
+            .wrap(cors)
+            .service(
+                web::resource("/medical")
+                    .route(web::post().to(validate_medical_data)),
+            )
+            .service(
+                web::resource("/authenticate")
+                    .route(web::post().to(authenticate_institution)),
+            )
+    })
+    .bind("127.0.0.1:3030")?
+    .run()
+    .await
 }

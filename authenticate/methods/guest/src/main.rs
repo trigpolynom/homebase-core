@@ -24,20 +24,15 @@ use risc0_zkvm::{
 risc0_zkvm::guest::entry!(main);
 
 pub fn main() {
-    let data: String = env::read();
-    let sha = *Impl::hash_bytes(&data.as_bytes());
-    let data = parse(&data).unwrap();
-    let stored_username = data["username"].as_str().unwrap();
-    let stored_password = data["password"].as_str().unwrap();
+    
+    let provider_password: String = env::read();
+    let patient_password: String = env::read();
 
-    let input_username: String = env::read();
-    let input_password: String = env::read();
-
-    let authorized = stored_username == input_username && stored_password == input_password;
+    let authorized = provider_password == patient_password;
 
     let out = Outputs {
         success: authorized,
-        hash: sha,
     };
     env::commit(&out);
+
 }

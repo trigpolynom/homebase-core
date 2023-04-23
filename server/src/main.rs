@@ -1,4 +1,4 @@
-// main.rs
+// server/src/main.rs
 mod server;
 
 #[tokio::main]
