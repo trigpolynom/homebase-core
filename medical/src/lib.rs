@@ -88,7 +88,7 @@ pub async fn validate_medical_data(input: web::Json<Value>) -> impl Responder {
 
                     // Fetch the eligible amount, coinsurance amount, and payment from adjudication
                 let (mut eligible_amount, mut coinsurance_amount, mut payment) = (0.0, 0.0, 0.0);
-                for adj in &claim.item.as_ref().unwrap()[0].adjudication.as_ref().unwrap() {
+                for adj in claim.item.as_ref().unwrap()[0].adjudication.as_ref().unwrap() {
                     match adj.category.as_ref().unwrap().coding.as_ref().unwrap()[0].code.as_ref().unwrap().as_str() {
                         "eligible" => eligible_amount = adj.amount.as_ref().unwrap().value.unwrap(),
                         "coinsurance" => coinsurance_amount = adj.amount.as_ref().unwrap().value.unwrap(),
@@ -98,7 +98,7 @@ pub async fn validate_medical_data(input: web::Json<Value>) -> impl Responder {
                 }
 
 
-                    let proof_input = Inputs {
+                let proof_input = Inputs {
                         patient_id_from_patient: patient_id.clone(),
                         patient_id_from_claim: claim.patient.as_ref().unwrap().reference.as_ref().unwrap()[8..].to_string(),
                         eligible_amount,
@@ -108,10 +108,20 @@ pub async fn validate_medical_data(input: web::Json<Value>) -> impl Responder {
 
                     };
 
+                let serialized_inputs = to_vec(&proof_input).expect("should be serializable");
+
+                // println!("Serialize patient_id_from_patient: {:?}", to_vec(&proof_input.patient_id_from_patient));
+                // println!("Serialize patient_id_from_claim: {:?}", to_vec(&proof_input.patient_id_from_claim));
+                // println!("Serialize eligible_amount: {:?}", to_vec(&proof_input.eligible_amount));
+                // println!("Serialize coinsurance_amount: {:?}", to_vec(&proof_input.coinsurance_amount));
+                // println!("Serialize coinsurance_pecentage: {:?}", to_vec(&proof_input.coinsurance_pecentage));
+                // println!("Serialize payment: {:?}", to_vec(&proof_input.payment));
+
+
                     // Make the prover.
                 let mut prover =
                 Prover::new(VALIDATE_CLAIM_ELF).expect("Prover should be constructed from valid ELF binary");
-                prover.add_input_u32_slice(&to_vec(&proof_input).expect("should be serializable"));
+                prover.add_input_u32_slice(&serialized_inputs);
 
                 // prover.add_input_u32_slice(&to_vec(&provider_password).expect("should be serializable"));
                 // prover.add_input_u32_slice(&to_vec(&auth_request.username).expect("should be serializable"));
@@ -129,21 +139,22 @@ pub async fn validate_medical_data(input: web::Json<Value>) -> impl Responder {
 
                 let outputs: Outputs = from_slice(&journal).expect("Journal should contain an Outputs object");
 
-                let success_message = format!("Healthcare Claim successfully validated. Attached is the hash of the data. Payment is {}", outputs.payment);
+                let success_message = format!("Healthcare Claim successfully validated. Attached is the hash of the data. Payment is {:?}", outputs.final_payment);
                 let fail_message = format!("Healthcare claim unsuccesfully validated. Will resubmit.");
                 if outputs.success {
-                    HttpResponse::Ok().json(ApiResponse { 
+                    return HttpResponse::Ok().json(ApiResponse { 
                         success: true,
                         hash: outputs.hash,
                         message: success_message,
-                     })
+                    });
                 } else {
-                    HttpResponse::Unauthorized().json(ApiResponse {
-                         success: false,
-                         hash: outputs.hash,
-                         message: fail_message,
-                         })
+                    return HttpResponse::Unauthorized().json(ApiResponse {
+                        success: false,
+                        hash: outputs.hash,
+                        message: fail_message,
+                    });
                 }
+                
                 
                 }
                 Err(e) => {

@@ -1,19 +1,6 @@
-// Copyright 2023 RISC Zero, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 use risc0_zkvm::sha::{Impl, Sha256, Digest};
 use serde::{Deserialize, Serialize};
+use serde::ser::{SerializeStruct, Serializer};
 use std::collections::HashMap;
 use bincode::{serialize, Error};
 use std::result::Result;
@@ -25,7 +12,7 @@ pub struct Outputs {
     pub final_payment: Option<i64>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Inputs {
     pub patient_id_from_patient: String,
     pub patient_id_from_claim: String,
@@ -35,13 +22,36 @@ pub struct Inputs {
     pub payment: f64,
 }
 
+impl Serialize for Inputs {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut s = serializer.serialize_struct("Inputs", 6)?;
+        s.serialize_field("patient_id_from_patient", &self.patient_id_from_patient)?;
+        s.serialize_field("patient_id_from_claim", &self.patient_id_from_claim)?;
+        s.serialize_field("eligible_amount", &(Self::float_to_fixed_precision(self.eligible_amount, 2) as i64))?;
+        s.serialize_field("coinsurance_amount", &(Self::float_to_fixed_precision(self.coinsurance_amount, 2) as i64))?;
+        s.serialize_field("coinsurance_pecentage", &(Self::float_to_fixed_precision(self.coinsurance_pecentage, 2) as i64))?;
+        s.serialize_field("payment", &(Self::float_to_fixed_precision(self.payment, 2) as i64))?;
+        s.end()
+    }
+}
+
 impl Inputs {
+    fn float_to_fixed_precision(value: f64, decimal_places: u32) -> i64 {
+        (value * 10f64.powi(decimal_places as i32)).round() as i64
+    }
+
     pub fn to_digest(&self) -> Result<Digest, Error> {
         let bytes = serialize(self)?;
         let digest = *Impl::hash_bytes(&bytes);
         Ok(digest)
     }
 }
+
+// The rest of the code remains the same
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Data {
@@ -152,12 +162,12 @@ pub struct Item {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProductOrService {
-    coding: Option<Vec<Coding>>,
+    pub coding: Option<Vec<Coding>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Quantity {
-    value: Option<f64>,
+    pub value: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -174,7 +184,7 @@ pub struct Adjudication {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Category {
-    coding: Option<Vec<Coding>>,
+    pub coding: Option<Vec<Coding>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -185,7 +195,7 @@ pub struct Amount {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Coding {
-    system: Option<String>,
-    code: Option<String>,
-    display: Option<String>,
+    pub system: Option<String>,
+    pub code: Option<String>,
+    pub display: Option<String>,
 }

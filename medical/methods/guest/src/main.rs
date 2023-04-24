@@ -1,32 +1,33 @@
-// Copyright 2023 RISC Zero, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+//methods/guest/src/main.rs
 
 #![no_main]
 
-use json::parse;
 use medical_core::{Outputs, Inputs};
 use risc0_zkvm::{
     guest::env,
-    sha::{Impl, Sha256},
+    serde::from_slice,
 };
 
 risc0_zkvm::guest::entry!(main);
 
 pub fn main() {
-    let proof_input: Inputs = env::read();
-    let sha = *Impl::hash_bytes(&proof_input.to_digest());
+    let serialized_inputs: Vec<u32> = env::read();
 
+    let proof_input: Inputs = match from_slice(&serialized_inputs) {
+        Ok(inputs) => inputs,
+        Err(error) => {
+            eprintln!("Error deserializing Inputs: {}", error);
+            return;
+        }
+    };
+    let sha = match proof_input.to_digest() {
+        Ok(digest) => digest,
+        Err(error) => {
+            // Handle the error here, you can print the error message or take other appropriate action
+            eprintln!("Error: {}", error);
+            return;
+        }
+    };
     // Verify patient_id_from_patient equals patient_id_from_claim
     let patient_id_match = &proof_input.patient_id_from_patient == &proof_input.patient_id_from_claim;
 
