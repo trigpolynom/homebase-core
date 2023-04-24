@@ -15,7 +15,7 @@
 #![no_main]
 
 use json::parse;
-use medical_core::Outputs;
+use medical_core::{Outputs, Inputs};
 use risc0_zkvm::{
     guest::env,
     sha::{Impl, Sha256},
@@ -24,20 +24,25 @@ use risc0_zkvm::{
 risc0_zkvm::guest::entry!(main);
 
 pub fn main() {
-    let data: String = env::read();
-    let sha = *Impl::hash_bytes(&data.as_bytes());
-    let data = parse(&data).unwrap();
-    let stored_username = data["username"].as_str().unwrap();
-    let stored_password = data["password"].as_str().unwrap();
+    let proof_input: Inputs = env::read();
+    let sha = *Impl::hash_bytes(&proof_input.to_digest());
 
-    let input_username: String = env::read();
-    let input_password: String = env::read();
+    // Verify patient_id_from_patient equals patient_id_from_claim
+    let patient_id_match = &proof_input.patient_id_from_patient == &proof_input.patient_id_from_claim;
 
-    let authorized = stored_username == input_username && stored_password == input_password;
+    // Verify eligible_amount * coinsurance_percentage = eligible_amount - coinsurance_amount
+    let calculated_coinsurance = &proof_input.eligible_amount * &proof_input.coinsurance_pecentage / 100.0;
+    let expected_coinsurance = &proof_input.eligible_amount - &proof_input.coinsurance_amount;
+    let epsilon = 0.01;
+    let coinsurance_match = (calculated_coinsurance - expected_coinsurance).abs() < epsilon;
+
+    let validated = patient_id_match && coinsurance_match;
 
     let out = Outputs {
-        success: authorized,
+        success: validated,
         hash: sha,
+        final_payment: Some(*&proof_input.eligible_amount as i64),
     };
+    
     env::commit(&out);
 }
