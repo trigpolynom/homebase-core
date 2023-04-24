@@ -1,0 +1,16 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021" 
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.11", features = ["json"] }
+actix-web = "4.0.0-beta.8"
+actix-rt = "2.2.0"
+actix-cors = "0.6"
+serde = "1.0"
+serde_json = "1.0"
+warp = "0.3"
+medical= { path = "../medical" }
+authenticate = { path = "../authenticate" }
