@@ -1,6 +1,5 @@
 use risc0_zkvm::sha::{Impl, Sha256, Digest};
 use serde::{Deserialize, Serialize};
-use serde::ser::{SerializeStruct, Serializer};
 use std::collections::HashMap;
 use bincode::{serialize, Error};
 use std::result::Result;
@@ -12,37 +11,18 @@ pub struct Outputs {
     pub final_payment: Option<i64>,
 }
 
-#[derive(Deserialize, Debug)]
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Inputs {
     pub patient_id_from_patient: String,
     pub patient_id_from_claim: String,
-    pub eligible_amount: f64,
-    pub coinsurance_amount: f64,
-    pub coinsurance_pecentage: f64,
-    pub payment: f64,
-}
-
-impl Serialize for Inputs {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut s = serializer.serialize_struct("Inputs", 6)?;
-        s.serialize_field("patient_id_from_patient", &self.patient_id_from_patient)?;
-        s.serialize_field("patient_id_from_claim", &self.patient_id_from_claim)?;
-        s.serialize_field("eligible_amount", &(Self::float_to_fixed_precision(self.eligible_amount, 2) as i64))?;
-        s.serialize_field("coinsurance_amount", &(Self::float_to_fixed_precision(self.coinsurance_amount, 2) as i64))?;
-        s.serialize_field("coinsurance_pecentage", &(Self::float_to_fixed_precision(self.coinsurance_pecentage, 2) as i64))?;
-        s.serialize_field("payment", &(Self::float_to_fixed_precision(self.payment, 2) as i64))?;
-        s.end()
-    }
+    pub eligible_amount: i64,
+    pub coinsurance_amount: i64,
+    pub coinsurance_pecentage: i64,
+    pub payment: i64,
 }
 
 impl Inputs {
-    fn float_to_fixed_precision(value: f64, decimal_places: u32) -> i64 {
-        (value * 10f64.powi(decimal_places as i32)).round() as i64
-    }
-
     pub fn to_digest(&self) -> Result<Digest, Error> {
         let bytes = serialize(self)?;
         let digest = *Impl::hash_bytes(&bytes);
@@ -57,8 +37,8 @@ impl Inputs {
 pub struct Data {
     pub patientDetails: PatientDetails,
     pub salesforceResult: SalesforceResult,
-    pub claims: Option<Claims>,
 }
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PatientDetails {
@@ -94,6 +74,7 @@ pub struct SalesforceRecord {
     pub attributes: serde_json::Value,
     pub InNetworkCoinsurancePercentage: f64,
 }
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SalesforceResult {
