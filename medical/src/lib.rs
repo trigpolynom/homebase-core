@@ -1,7 +1,7 @@
 // medical/src/lib.rs
 use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
 use actix_cors::Cors;
-use medical_core::{Outputs, Data, Claims, Inputs};
+use medical_core::{Outputs, Data, Claims, Inputs, SalesforceRecord};
 use medical_methods::{VALIDATE_CLAIM_ELF, VALIDATE_CLAIM_ID};
 use serde::{Deserialize, Serialize};
 use risc0_zkvm::{
@@ -70,8 +70,11 @@ async fn fetch_claim() -> Result<Claims, FetchClaimError> {
 
 pub async fn validate_medical_data(input: web::Json<Value>) -> impl Responder {
     println!("Inside validate_medical_data function");
-    match serde_json::from_value::<Data>(input.into_inner()) {
+    let input_value = input.into_inner();
+    println!("Input JSON: {:?}", input_value); 
+    match serde_json::from_value::<Data>(input_value) {
         Ok(mut data) => {
+            
             // Work with the deserialized data
             let patient_id = &data.patientDetails.value[0].id;
             let patient_name = &data.patientDetails.value[0].name[0].given[0];
@@ -101,10 +104,10 @@ pub async fn validate_medical_data(input: web::Json<Value>) -> impl Responder {
                 let proof_input = Inputs {
                         patient_id_from_patient: patient_id.clone(),
                         patient_id_from_claim: claim.patient.as_ref().unwrap().reference.as_ref().unwrap()[8..].to_string(),
-                        eligible_amount,
-                        coinsurance_amount,
-                        coinsurance_pecentage: salesforce_in_network_coinsurance_percentage,
-                        payment,
+                        eligible_amount: eligible_amount.round() as i64,
+                        coinsurance_amount: coinsurance_amount.round() as i64,
+                        coinsurance_pecentage: salesforce_in_network_coinsurance_percentage.round() as i64,
+                        payment: payment.round() as i64,
 
                     };
 
@@ -170,3 +173,39 @@ pub async fn validate_medical_data(input: web::Json<Value>) -> impl Responder {
         Err(e) => HttpResponse::BadRequest().body(format!("Failed to deserialize data: {}", e)),
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validation() {
+        let proof_input = Inputs {
+            patient_id_from_patient: "P001".to_string(),
+            patient_id_from_claim: "P001".to_string(),
+            eligible_amount: 8500,
+            coinsurance_amount: 1700,
+            coinsurance_pecentage: 20,
+            payment: 6800,
+        };
+
+        let patient_id_match = &proof_input.patient_id_from_patient == &proof_input.patient_id_from_claim;
+        println!("patient_id_match: {}", patient_id_match);
+
+        let calculated_coinsurance = (proof_input.eligible_amount as f64) * (proof_input.coinsurance_pecentage as f64) / 100.0;        
+        let expected_payment = (proof_input.eligible_amount as f64) * (1.0 - (proof_input.coinsurance_pecentage as f64) / 100.0);
+
+        let epsilon = 0.01;
+        let coinsurance_match = (calculated_coinsurance - (proof_input.coinsurance_amount as f64)).abs() < epsilon;       
+        println!("coinsurance_match: {}", coinsurance_match);
+        
+        let payment_match = (expected_payment - (proof_input.payment as f64)).abs() < epsilon;
+        println!("payment_match: {}", payment_match);
+
+        let validated = patient_id_match && coinsurance_match && payment_match;
+
+        assert_eq!(validated, true);
+    }
+}
+
