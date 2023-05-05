@@ -8,9 +8,11 @@ use serde::{Deserialize, Serialize};
 use authenticate_methods::{SEARCH_JSON_ELF, SEARCH_JSON_ID};
 use risc0_zkvm::{
     serde::{from_slice, to_vec},
-    Prover,
+    Prover, Receipt,
 };
 use tokio;
+use std::hash::{Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
 
 
 #[derive(Serialize, Deserialize)]
@@ -21,28 +23,35 @@ pub struct AuthRequest {
 #[derive(Serialize, Deserialize)]
 struct ApiResponse {
     success: bool,
+    message: String,
+    hash_of_seal: Option<u64>,
 }
 
 async fn fetch_password() -> Result<String, Error> {
-    let response = reqwest::get("http://localhost:8080/odata/password").await?;
+    let response = reqwest::get("http://localhost:8080/odata/homebase.svc/provider/Passwords?$top=11&$filter=(Id eq '01')").await?;
 
     let json: Value = response.json().await?;
-    let password = json["value"][0]["P001"].as_str().unwrap_or("");
+    println!("JSON response: {:?}", json);
+    let password = json["value"][0]["Password"].as_str().unwrap_or("").to_owned();
 
-    Ok(password.to_string())
+    Ok(password)
 }
 
 
 pub async fn authenticate_institution(input: web::Json<Value>) -> impl Responder {
     println!("Inside authenticate_institution function");
 
+    let fail_to_parse_message = format!("Parsing the password failed.");
+
+
     let provider_password = match fetch_password().await {
         Ok(password) => password,
         Err(_) => {
-            return HttpResponse::InternalServerError().json(ApiResponse { success: false });
+            return HttpResponse::InternalServerError().json(ApiResponse { success: false, message: fail_to_parse_message, hash_of_seal: None});
         }
     };
-    let patient_password = input["value"][0]["password"].as_str().unwrap_or("");
+    println!("JSON response: {:?}", input);
+    let patient_password = input["value"][0]["TrustedInstitutionPassword"].as_str().unwrap_or("").to_owned();
 
     let auth_request = AuthRequest {
         password: patient_password.to_string(),
@@ -65,11 +74,17 @@ pub async fn authenticate_institution(input: web::Json<Value>) -> impl Responder
 
     let journal = &receipt.journal;
 
+    let mut hasher = DefaultHasher::new();
+    receipt.seal.hash(&mut hasher);
+    let hash = hasher.finish();
+
     let outputs: Outputs = from_slice(&journal).expect("Journal should contain an Outputs object");
+    let success_message = format!("Passwords are the same, you are a trusted institution of the patient.");
+    let fail_message = format!("Passwords are not the same.");
 
     if outputs.success {
-        HttpResponse::Ok().json(ApiResponse { success: true })
+        HttpResponse::Ok().json(ApiResponse { success: true, message: success_message, hash_of_seal: Some(hash)})
     } else {
-        HttpResponse::Unauthorized().json(ApiResponse { success: false })
+        HttpResponse::Unauthorized().json(ApiResponse { success: false, message: fail_message, hash_of_seal: Some(hash)})
     }
 }
