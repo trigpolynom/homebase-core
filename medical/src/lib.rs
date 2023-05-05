@@ -1,4 +1,3 @@
-// medical/src/lib.rs
 use actix_web::{post, web, App, HttpResponse, HttpServer, Responder};
 use actix_cors::Cors;
 use medical_core::{Outputs, Data, Claims, Inputs, SalesforceRecord};
@@ -8,10 +7,11 @@ use risc0_zkvm::{
     serde::{from_slice, to_vec},
     Prover, sha::{self, Digest}
 };
-use serde_json::Value;
+use serde_json::{Value, from_str};
 use tokio;
 use reqwest::Error as ReqwestError;
 use serde_json::Error as SerdeJsonError;
+use std::error::Error;
 use std::fmt;
 
 #[derive(Debug)]
@@ -54,60 +54,76 @@ struct ApiResponse {
     success: bool,
     hash: Digest,
     message: String,
+    journal: Vec<u8>,
+}
+
+struct FetchedClaim {
+    claim_coinsurance: i64,
+    claim_patient_id: String,
+    claim_payment: i64,
+    eligible_amount: i64,
 }
 
 
-async fn fetch_claim() -> Result<Claims, FetchClaimError> {
-    let response = reqwest::get("http://localhost:8080/odata/claim").await?;
+async fn fetch_claim() -> Result<FetchedClaim,  Box<dyn Error>> {
+    let url = "http://localhost:8080/odata/homebase.svc/provider/Claims?$top=11&$filter=(Id eq '01')";
+    let response = reqwest::get(url).await?;
 
-    let json: Value = response.json().await?;
-    println!("Raw JSON: {}", json); // Debug print the raw JSON
+    if response.status().is_success() {
+        // response.json().await?;
+        // let body = response.text().await?;
 
-    let deserialized_claim: Result<Claims, SerdeJsonError> = serde_json::from_value(json);
+        // let json_data: Value = serde_json::from_str(&body)?;
 
-    deserialized_claim.map_err(FetchClaimError::from)
+        let json_data: Value = response.json().await?;
+
+        // Access fields from the deserialized JSON data
+        println!("Input JSON: {:?}", json_data.to_string());
+        let claim_coinsurance = json_data["value"][0]["ClaimCoinsurance"].as_f64().unwrap() as i64;
+       
+        let claim_patient_id = json_data["value"][0]["ClaimPatientId"].as_str().unwrap().to_string();
+        let claim_payment = json_data["value"][0]["ClaimPayment"].as_f64().unwrap() as i64;
+        let eligible_amount = json_data["value"][0]["EligibleAmount"].as_f64().unwrap() as i64;
+
+        Ok(FetchedClaim {
+            claim_coinsurance,
+            claim_patient_id,
+            claim_payment,
+            eligible_amount,
+        })
+    } else {
+        let error_msg = format!("Unexpected status code: {}", response.status());
+        Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, error_msg)))
+    }
 }
+
 
 pub async fn validate_medical_data(input: web::Json<Value>) -> impl Responder {
     println!("Inside validate_medical_data function");
     let input_value = input.into_inner();
     println!("Input JSON: {:?}", input_value); 
-    match serde_json::from_value::<Data>(input_value) {
-        Ok(mut data) => {
-            
-            // Work with the deserialized data
-            let patient_id = &data.patientDetails.value[0].id;
-            let patient_name = &data.patientDetails.value[0].name[0].given[0];
-            let salesforce_in_network_coinsurance_percentage = data.salesforceResult.records[0].InNetworkCoinsurancePercentage;
 
-            println!("Patient ID: {}", patient_id);
-            println!("Patient Name: {}", patient_name);
-            println!("Salesforce In-Network Coinsurance Percentage: {}", salesforce_in_network_coinsurance_percentage);
+    // Access fields from the deserialized JSON data
+    let patient_id = input_value["patientDetails"]["value"][0]["Id"].as_str().unwrap();
+    let patient_name = input_value["patientDetails"]["value"][0]["PatientName"].as_str().unwrap();
+    let salesforce_in_network_coinsurance_percentage = input_value["salesforceResult"]["records"][0]["InNetworkCoinsurancePercentage"].as_f64().unwrap();
+
+    println!("Patient ID: {}", patient_id);
+    println!("Patient Name: {}", patient_name);
+    println!("Salesforce In-Network Coinsurance Percentage: {}", salesforce_in_network_coinsurance_percentage);
 
             // Fetch the claim data
             match fetch_claim().await {
-                Ok(claims) => {
-                    let claim = &claims.value[0];
-
-                    // Fetch the eligible amount, coinsurance amount, and payment from adjudication
-                let (mut eligible_amount, mut coinsurance_amount, mut payment) = (0.0, 0.0, 0.0);
-                for adj in claim.item.as_ref().unwrap()[0].adjudication.as_ref().unwrap() {
-                    match adj.category.as_ref().unwrap().coding.as_ref().unwrap()[0].code.as_ref().unwrap().as_str() {
-                        "eligible" => eligible_amount = adj.amount.as_ref().unwrap().value.unwrap(),
-                        "coinsurance" => coinsurance_amount = adj.amount.as_ref().unwrap().value.unwrap(),
-                        "payment" => payment = adj.amount.as_ref().unwrap().value.unwrap(),
-                        _ => (),
-                    }
-                }
-
+                Ok(claim) => {
+                  
 
                 let proof_input = Inputs {
-                        patient_id_from_patient: patient_id.clone(),
-                        patient_id_from_claim: claim.patient.as_ref().unwrap().reference.as_ref().unwrap()[8..].to_string(),
-                        eligible_amount: eligible_amount.round() as i64,
-                        coinsurance_amount: coinsurance_amount.round() as i64,
+                        patient_id_from_patient: patient_id.to_owned(),
+                        patient_id_from_claim: claim.claim_patient_id,
+                        eligible_amount: claim.eligible_amount,
+                        coinsurance_amount: claim.claim_coinsurance,
                         coinsurance_pecentage: salesforce_in_network_coinsurance_percentage.round() as i64,
-                        payment: payment.round() as i64,
+                        payment: claim.claim_payment,
 
                     };
 
@@ -142,19 +158,21 @@ pub async fn validate_medical_data(input: web::Json<Value>) -> impl Responder {
 
                 let outputs: Outputs = from_slice(&journal).expect("Journal should contain an Outputs object");
 
-                let success_message = format!("Healthcare Claim successfully validated. Attached is the hash of the data. Payment is {:?}", outputs.final_payment);
+                let success_message = format!("Healthcare Claim successfully validated. Attached is the hash of the data. Payment is {:?}", outputs.final_payment.to_owned());
                 let fail_message = format!("Healthcare claim unsuccesfully validated. Will resubmit.");
                 if outputs.success {
                     return HttpResponse::Ok().json(ApiResponse { 
                         success: true,
                         hash: outputs.hash,
                         message: success_message,
+                        journal: journal.to_owned(),
                     });
                 } else {
                     return HttpResponse::Unauthorized().json(ApiResponse {
                         success: false,
                         hash: outputs.hash,
                         message: fail_message,
+                        journal: journal.to_owned(),
                     });
                 }
                 
@@ -166,14 +184,8 @@ pub async fn validate_medical_data(input: web::Json<Value>) -> impl Responder {
                 }
             }
 
-            // ...
-
-            HttpResponse::Ok().body("Successfully deserialized data")
-        }
-        Err(e) => HttpResponse::BadRequest().body(format!("Failed to deserialize data: {}", e)),
-    }
 }
-
+    
 
 #[cfg(test)]
 mod tests {
