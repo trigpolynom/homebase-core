@@ -13,6 +13,7 @@ use reqwest::Error as ReqwestError;
 use serde_json::Error as SerdeJsonError;
 use std::error::Error;
 use std::fmt;
+use cupcake::traits::*;
 
 #[derive(Debug)]
 enum FetchClaimError {
@@ -99,9 +100,19 @@ async fn fetch_claim() -> Result<FetchedClaim,  Box<dyn Error>> {
 
 
 pub async fn validate_medical_data(input: web::Json<Value>) -> impl Responder {
+
+    println!("host - init fv context");
+    let fv = cupcake::default();
+
+
+    println!("host - init fv keys");
+    let (pk, sk) = fv.generate_keypair();
+
     println!("Inside validate_medical_data function");
     let input_value = input.into_inner();
     println!("Input JSON: {:?}", input_value); 
+
+    let encrypted_input = fv.encrypt(&input_value, &pk);
 
     // Access fields from the deserialized JSON data
     let patient_id = input_value["patientDetails"]["value"][0]["Id"].as_str().unwrap();
