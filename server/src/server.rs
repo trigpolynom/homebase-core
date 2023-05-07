@@ -19,7 +19,7 @@ pub async fn run_server() -> std::io::Result<()> {
                     .route(web::post().to(authenticate_institution)),
             )
     })
-    .bind("127.0.0.1:3030")?
+    .bind("0.0.0.0:3030")?
     .run()
     .await
 }

@@ -66,7 +66,7 @@ struct FetchedClaim {
 
 
 async fn fetch_claim() -> Result<FetchedClaim,  Box<dyn Error>> {
-    let url = "http://localhost:8080/odata/homebase.svc/provider/Claims?$top=11&$filter=(Id eq '01')";
+    let url = "https://ec2-3-142-221-10.us-east-2.compute.amazonaws.com/odata/homebase.svc/provider/Claims?$top=11&$filter=(Id eq '01')";
     let response = reqwest::get(url).await?;
 
     if response.status().is_success() {

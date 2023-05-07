@@ -28,7 +28,7 @@ struct ApiResponse {
 }
 
 async fn fetch_password() -> Result<String, Error> {
-    let response = reqwest::get("http://localhost:8080/odata/homebase.svc/provider/Passwords?$top=11&$filter=(Id eq '01')").await?;
+    let response = reqwest::get("https://ec2-3-142-221-10.us-east-2.compute.amazonaws.com/odata/homebase.svc/provider/Passwords?$top=11&$filter=(Id eq '01')").await?;
 
     let json: Value = response.json().await?;
     println!("JSON response: {:?}", json);
