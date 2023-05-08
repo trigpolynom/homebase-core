@@ -1,5 +1,5 @@
 [package]
-name = "authenticate-methods"
+name = "fhe-methods"
 version = "0.1.0"
 edition = "2021"
 

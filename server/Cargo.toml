@@ -12,5 +12,4 @@ actix-cors = "0.6"
 serde = "1.0"
 serde_json = "1.0"
 warp = "0.3"
-medical= { path = "../medical" }
-authenticate = { path = "../authenticate" }
+fhe = { path = "../fhe" }

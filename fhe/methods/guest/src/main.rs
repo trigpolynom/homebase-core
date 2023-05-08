@@ -12,9 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use serde::{Deserialize, Serialize};
+#![no_main]
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct Outputs {
-    pub success: bool,
+use json::parse;
+use risc0_zkvm::{
+    guest::env,
+    sha::{Impl, Sha256},
+};
+
+risc0_zkvm::guest::entry!(main);
+
+pub fn main() {
+    
+    let provider_password: String = env::read();
+    let patient_password: String = env::read();
+
 }

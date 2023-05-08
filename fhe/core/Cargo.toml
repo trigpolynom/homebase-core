@@ -1,5 +1,5 @@
 [package]
-name = "authenticate-core"
+name = "fhe-core"
 version = "0.1.0"
 edition = "2021"
 
