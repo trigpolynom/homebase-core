@@ -13,8 +13,7 @@ use risc0_zkvm::{
 };
 use tokio;
 use std::{hash::{Hash, Hasher}, collections::HashMap};
-use std::collections::hash_map::DefaultHasher;
-
+use threshold_secret_sharing as tss;
 
 #[derive(Serialize, Deserialize)]
 pub struct AuthRequest {
@@ -29,31 +28,41 @@ struct ApiResponse {
 }
 
 
-
-pub async fn encrypt__and_expose(input: web::Json<Value>) -> impl Responder {
+pub async fn encrypt__and_expose(input: web::Json<String>) -> impl Responder {
     println!("JSON response: {:?}", input);
 
-    // Extract the String value from the input JSON
-    let input_string = match input.0.as_str() {
-        Some(value) => value,
-        None => return HttpResponse::BadRequest().body("Invalid input: expected a string"),
+    let input_json: Value = match serde_json::from_str(&input) {
+        Ok(json) => json,
+        Err(_) => return HttpResponse::BadRequest().body("Failed to deserialize the input JSON string"),
     };
 
-    let secret_key = LWESecretKey::new(&LWE128_630);
-    let encoder = Encoder::new(0., 1024., 8, 24).unwrap();
+    let patient_name = input_json["value"][0]["PatientName"].as_str().unwrap_or("").to_owned();
+    let simpson_string = "Simpson";
 
-    // Convert the input string to a Vec<f64> using UTF-8 encoding
-    let input_f64_vec: Vec<f64> = input_string.as_bytes().iter().map(|&byte| byte as f64).collect();
+    let n = 3;
+    let k = 2;
 
-    // Encrypt each f64 value in the input_f64_vec
-    let encrypted_vec: Vec<_> = input_f64_vec
-        .into_iter()
-        .map(|input_f64| LWE::encode_encrypt(&secret_key, input_f64, &encoder).unwrap())
+    let shares: Vec<Vec<u32>> = patient_name
+        .as_bytes()
+        .iter()
+        .zip(simpson_string.as_bytes().iter())
+        .map(|(&a, &b)| {
+            let diff = i32::from(a) - i32::from(b);
+            tss::generate_shares(n, k, diff as u32)
+        })
         .collect();
 
-    // Serialize the encrypted data to a JSON string
-    let serialized = serde_json::to_string(&encrypted_vec).unwrap();
+    let reconstructed_diff: Vec<i32> = shares
+        .iter()
+        .map(|share_set| tss::reconstruct_secret(share_set) as i32)
+        .collect();
 
-    HttpResponse::Ok().json(serialized)
+    let is_equal = reconstructed_diff.iter().all(|&diff| diff == 0);
+
+    if is_equal {
+        HttpResponse::Ok().body("Strings are equal")
+    } else {
+        HttpResponse::Ok().body("Strings are not equal")
+    }
 
 }
