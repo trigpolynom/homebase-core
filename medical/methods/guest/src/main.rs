@@ -36,7 +36,7 @@ pub fn main() {
     let out = Outputs {
         success: validated,
         hash: sha,
-        final_payment: Some(proof_input.eligible_amount),
+        final_payment: Some(proof_input.payment),
     };
 
     env::commit(&out);
